@@ -46,7 +46,6 @@ Paragraph or two introducing your datasets and variables, why they are interesti
 If your datasets are tidy already, demonstrate that you can reshape data with pivot wider/longer here (e.g., untidy and then retidy). Alternatively, it may be easier to wait until the wrangling section so you can reshape your summary statistics. Note here if you are going to do this.
 
 ```{R}
-#My datasets are already tidy. Here is a demonstration of reshaping using pivot_wider and pivot_longer. Please note that I also demonstrate this in the wrangling section.
 Heart_disease_mortality_by_state <- Heart_disease_mortality_by_state %>% pivot_wider(names_from = STATE, values_from = RATE)
 Hypertension_mortality_by_state <- Hypertension_mortality_by_state %>% pivot_wider(names_from = STATE, values_from = RATE)
 
@@ -54,6 +53,7 @@ Heart_disease_mortality_by_state <- Heart_disease_mortality_by_state %>% pivot_l
 Hypertension_mortality_by_state <- Hypertension_mortality_by_state %>% pivot_longer(4:54, names_to = "STATE", values_to = "Hypertension_Mortality_per_100000_People", values_drop_na = TRUE)
 ```
 
+*My datasets are already tidy. Here is a demonstration of reshaping using pivot_wider and pivot_longer. Please note that I also demonstrate this in the wrangling section.*
 
 ```{R}
 #Cleaning up/removing unnecessary columns
@@ -62,6 +62,7 @@ Hypertension_mortality_by_state <- Hypertension_mortality_by_state %>% rename(Hy
 
 ```
 
+*In this chunk, I remove unnecessary columns like ones with a website URL*
     
 #### Joining/Merging
 
@@ -108,7 +109,7 @@ nrow(Mortality_joined)
 #Core dplyr functions
 Mortality_joined %>% filter(STATE == "AL")
 
-Mortality_joined %>% select(`Heart_Disease_Deaths`)
+Mortality_joined %>% select(STATE,`Heart_Disease_Deaths`)
 
 Mortality_joined %>% arrange(desc('Heart_Disease_Mortality_per_100000_People'))
 
@@ -123,9 +124,9 @@ Mortality_joined %>% summarize(mean(Heart_Disease_Deaths > 5000))
 Mortality_joined %>% filter(str_detect(STATE,"^A"))
 
 ```
-*For the procedure for my core dplyr functions, I first piped my
+*For the procedure for my core dplyr functions, I will be piping my joined dataset into all of the functions. First, I used the filter function to filter only the AL state (Alabama). This is useful because it allows me to consolidate all AL's information throughout the years in one place. Then I used the select function to select only states and Heart Disease deaths. This is especially useful because I can remove all unnecessary information and focus on comparing two columns if I choose to in the future. Then, using the arrange function, I arranged the dataset based on Heart_Disease_Mortality_per_100000_People by decreasing number. This is very useful because now I can see which states and which years have the highest and lowest counts for any specific column I like. Then, using the group_by function, I grouped my data set by STATE which helped me consolidate any repeating state and year combinations. Luckily, I had already done this so this function would be useful if I ever used a different function that shuffled the states and I needed grouping again. Then, I used the mutate function to create a new column that shows both Heart Disease and Hypertension mortality per 10,000 people as opposed to 100,000. This was done very easily and can be modified to extract any number of statistics. Then, I used the summarize function to find the proportion of States with a Heart Disease death count of over 5000 people. This is very powerful and can be used to find if most or only a few states fall below or sit above a certain number. Lastly, I used filter to detect any states that start with A. This is especially useful when using text manipulation on certain strings. Using this function, I could see if states that start with A have a higher or lower death count for either of the diseases.*
 
-```{R - dplyr Summary Statistics Overall}
+```{R dplyr Summary Statistics Overall}
 #5 Unique Dplyr Summary Statistics Functions
 Mortality_joined %>% summarize_at(c("Heart_Disease_Deaths", "Heart_Disease_Mortality_per_100000_People", "Hypertension_Deaths", "Hypertension_Mortality_per_100000_People"), mean)
   
@@ -159,31 +160,25 @@ Mortality_joined %>% group_by(YEAR) %>% summarize(Heart_Disease_and_Hypertension
 
 #table using kable
 
-Mortality_joined %>% group_by(YEAR) %>% summarize_at(c("Heart_Disease_Deaths", "Heart_Disease_Mortality_per_100000_People", "Hypertension_Deaths", "Hypertension_Mortality_per_100000_People"), sd) %>% kbl() %>% kable_material_dark()
+Mortality_joined %>% group_by(YEAR) %>% summarize_at(c("Heart_Disease_Deaths", "Heart_Disease_Mortality_per_100000_People", "Hypertension_Deaths", "Hypertension_Mortality_per_100000_People"), sd) %>% kbl(caption = "Heart Disease and Hypertension Statistics by Year", col.names = c("Year", "Heart Disease Deaths", "Heart Disease Deaths per 100,000 People", "Hypertension Deaths", "Hypertension Deaths per 100,000 People"), align=rep('c')) %>% kable_material_dark()
 
 #table using pivot_wider that can be used to make a table using kable package
 Mortality_joined %>% pivot_wider(names_from = YEAR, values_from = Heart_Disease_Deaths)
 ```
 
-
-Your discussion of wrangling section here. Feel encouraged to break up into more than once code chunk and discuss each in turn.
-
-
-
+*For the procedure for my summary statistics functions, I will be piping my joined dataset into all of the functions. First, I used the group_by function to group by either 1 or 2 categorical variables as shown above. Grouping by 2 categorical variables allowed me to group both years and states together so that I can see all the data for a state across the years that are available. Then, I defined my own function called Per_10000 and used it to compute the Heart Disease Mortality per 10,000 people and create a new column with it. Then, using n() inside group_by and summarize, I was able to count the number of years that data was available for each state and also the number of states that data was available for each year. Then, using the kable package, I was able to create a nice looking table to display the standard deviation for each of my columns in a dark theme with edited column titles for simplicity. Lastly, I showed that I could potentially use pivot wider and the kable package to create a wide table. However, at this moment, such a function is not super useful unless I want to untidy the data.*
 
 #### Visualizing
 
 ```{R fig.height = 5, fig.width = 15}
 library(ggplot2)
-ggplot(Mortality_joined, aes(x = STATE, y = Heart_Disease_Deaths)) + 
-  geom_bar(aes(x = STATE, y = Heart_Disease_Deaths), stat = "identity") + 
-  #scale_color_manual(values = c("2019" = "purple", "2018" = "blue", "2017" = "deepskyblue1", "2016" = "green", "2015" =    "yellow", "2014" = "orange", "2005" = "red" )) +
-  #geom_smooth(aes(group = YEAR), method = "loess", se=F) +
+ggplot(Mortality_joined, aes(x = STATE, y = Heart_Disease_Deaths, fill = YEAR)) + 
+  geom_bar(aes(x = STATE, y = Heart_Disease_Deaths, position = "fill"), stat = "identity") + 
+  geom_smooth(aes(group = YEAR), method = "loess", se=F) +
   scale_y_continuous(breaks = seq(0,600000, by = 100000)) + 
   ggtitle("Heart Disease Death Counts by State and Year") + 
   ylab("Heart Disease Death Counts") + 
-  xlab("State") + 
-  labs(color="Year") +
+  xlab("State") +
   theme_light()
 
 #color = as.factor(YEAR)
@@ -193,14 +188,28 @@ ggplot(Mortality_joined, aes(x = STATE, y = Heart_Disease_Deaths)) +
 
 Your discussion of plot 1
 
-```{R}
-ggplot(ChickWeight, aes(x = Diet)) + geom_bar(aes(y=weight), stat="summary", fun=mean)
+```{R,fig.width = 8}
+ggplot(Mortality_joined, aes(x = YEAR, y = Hypertension_Deaths)) + 
+  geom_point(aes(color = STATE,stat = "identity")) + 
+  geom_smooth(method = "lm") +
+  scale_x_discrete(limits = c(2005:2019)) +
+  ggtitle("Hypertension Death Counts by Year") + 
+  ylab("Hypertension Death Counts") + 
+  xlab("Year") +
+  theme_classic()
 ```
 
 Your discussion of plot 2
 
-```{R}
-# your plot 3
+```{R, fig.width = 11.5}
+ggplot(Mortality_joined, aes(x = YEAR, y = Hypertension_Mortality_per_100000_People)) + 
+  geom_point(aes(color = STATE,stat = "identity")) +
+  geom_line(aes(group = STATE, color = STATE), method = "loess", se=F) +
+  scale_x_discrete(limits = c(2005:2019)) +
+  ggtitle("Hypertension Mortality per 100,000 People by State and Year") + 
+  ylab("Hypertension Mortality per 100,000 People") + 
+  xlab("Year") +
+  theme_linedraw()
 ```
 
 Your discussion of plot 3
