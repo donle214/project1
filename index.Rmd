@@ -181,20 +181,21 @@ ggplot(Mortality_joined, aes(x = STATE, y = Heart_Disease_Deaths, fill = YEAR)) 
   theme_light()
 ```
 
-Your discussion of plot 1
+*The plot above depicts Heart Disease Death Counts by State and Year. By plotting a barplot, I am able to see the heart disease death counts for each state. This reveals that in states like California, Florida, New York, and Texas with very large populations, it makes sense that the bars/bins for Heart disease death counts are much higher than in states with a very small population. Using position = "fill" in geom_bar, I was able to split each bar into their respective years and show how much each year contributes to the total. From this, I was able to see a trend that shows mostly decreasing Heart Disease death counts as the years progress.*
 
-```{R,fig.width = 8}
-ggplot(Mortality_joined, aes(x = YEAR, y = Hypertension_Deaths)) + 
-  geom_point(aes(color = STATE)) + 
-  geom_smooth(method = "lm") +
+```{R,fig.width = 8, fig.height = 8}
+
+ggplot(Mortality_joined, aes(x=YEAR, y= Hypertension_Deaths)) + 
+  geom_area(alpha = 0.8, aes(fill = STATE)) +
   scale_x_discrete(limits = c(2005:2019)) +
-  ggtitle("Hypertension Death Counts by Year") + 
+  geom_count() +
+  ggtitle("Hypertension Death Counts by Year and State") + 
   ylab("Hypertension Death Counts") + 
   xlab("Year") +
-  theme_classic()
+  theme_linedraw()
 ```
 
-Your discussion of plot 2
+*The plot above depicts Hypertension Death Counts by State and Year. By plotting an area graph, I am able to see the change in Hypertension Death Counts throughout the years and see which states add more deaths to the total than others (namely California). This plot reveals an interesting result with a very clear upward trend for Hypertension Death Counts throughout the years. In addition, using geom_count, I am able to deduce that most of the death counts for almost all of the states are very similar. However, there are some outliers which are most likely states with larger populations. This conclusion is corroborated in my other plots. Lastly, from looking at the overall plot, I was able to see a trend that shows an overall smaller slope for death count increases from 2018-2019 indicating a number of possible reasons which should be analyzed futher. The population could be increasing more slowly than before, medication and healthcare access could have increased, and the average living condition may have increased as well.*
 
 ```{R, fig.width = 11.5}
 ggplot(Mortality_joined, aes(x = YEAR, y = Hypertension_Mortality_per_100000_People)) + 
@@ -207,11 +208,11 @@ ggplot(Mortality_joined, aes(x = YEAR, y = Hypertension_Mortality_per_100000_Peo
   theme_linedraw()
 ```
 
-Your discussion of plot 3
+*The plot above depicts Hypertension Mortality per 100,000 people by State and Year. By plotting a line graph with points, I am able to see the change in Hypertension mortality per 100,000 people throughout the years and states. This plot reveals an interesting result with Mississippi showing much higher Hypertension mortality per 100,000 people than other states. In addition, while most states managed to decrease their Hypertension mortality per 100,000 people throughout the years, Arizona showed a massive increase! This is very interesting, and much more analysis must be done to reveal why this change happened. Lastly, from looking at the overall plot, I was able to see a trend that shows an overall slight increase in Hypertension mortality per 100,000 people from year 2014-2019.*
 
 #### Concluding Remarks
 
-This was very FUN!
+*This was very FUN!*
 
 
 
