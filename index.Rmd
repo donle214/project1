@@ -40,7 +40,6 @@ Paragraph or two introducing your datasets and variables, why they are interesti
 
 *I chose two datasets that hold a special place in my heart. Not only do they relate to one of the current organizations that I work with (Hearts 4 the Homeless), but they also are known to be related clinically. Both data sets have prevalence mortality counts of hypertension and heart disease by year and state. In addition, they also have mortality counts per 100000 people. This is especially interesting to me because such data can be used to analyze whether more population dense states have differences in heart disease or hypertension mortality when compared to less population dense states. In addition, this analysis can be compared across years to see if there is an overall change in mortality rates for both of these diseases/conditions throughout the years. Statistically, I love working with a combination of categorical and numerical variables and a joined dataset of a public health statistic that holds a special place in my heart makes this project more meaningful!*
 
-
 #### Tidying: Reshaping
 
 If your datasets are tidy already, demonstrate that you can reshape data with pivot wider/longer here (e.g., untidy and then retidy). Alternatively, it may be easier to wait until the wrangling section so you can reshape your summary statistics. Note here if you are going to do this.
@@ -180,17 +179,13 @@ ggplot(Mortality_joined, aes(x = STATE, y = Heart_Disease_Deaths, fill = YEAR)) 
   ylab("Heart Disease Death Counts") + 
   xlab("State") +
   theme_light()
-
-#color = as.factor(YEAR)
-
-
 ```
 
 Your discussion of plot 1
 
 ```{R,fig.width = 8}
 ggplot(Mortality_joined, aes(x = YEAR, y = Hypertension_Deaths)) + 
-  geom_point(aes(color = STATE,stat = "identity")) + 
+  geom_point(aes(color = STATE)) + 
   geom_smooth(method = "lm") +
   scale_x_discrete(limits = c(2005:2019)) +
   ggtitle("Hypertension Death Counts by Year") + 
@@ -203,7 +198,7 @@ Your discussion of plot 2
 
 ```{R, fig.width = 11.5}
 ggplot(Mortality_joined, aes(x = YEAR, y = Hypertension_Mortality_per_100000_People)) + 
-  geom_point(aes(color = STATE,stat = "identity")) +
+  geom_point(aes(color = STATE)) +
   geom_line(aes(group = STATE, color = STATE), method = "loess", se=F) +
   scale_x_discrete(limits = c(2005:2019)) +
   ggtitle("Hypertension Mortality per 100,000 People by State and Year") + 
@@ -216,7 +211,7 @@ Your discussion of plot 3
 
 #### Concluding Remarks
 
-If any!
+This was very FUN!
 
 
 
