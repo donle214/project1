@@ -1,0 +1,214 @@
+---
+title: 'Project 1: Wrangling, Exploration, Visualization'
+author: "SDS322E"
+date: ''
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+  pdf_document:
+    toc: no
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F,
+tidy=TRUE, tidy.opts=list(width.cutoff=60), R.options=list(max.print=100))
+```
+
+## Data Wrangling, Exploration, Visualization
+
+### Don Le dhl595
+
+#### Introduction 
+
+```{R}
+
+install.packages('KableExtra', dependencies=TRUE, repos='http://cran.rstudio.com/')
+
+library(kableExtra)
+library(tidyverse)
+library(dplyr)
+
+Hypertension_mortality_by_state <- read_csv("Hypertension_mortality_by_state.csv")
+Heart_disease_mortality_by_state <- read_csv("Heart_disease_mortality_by_state.csv")
+```
+
+
+Paragraph or two introducing your datasets and variables, why they are interesting to you, etc.
+
+*I chose two datasets that hold a special place in my heart. Not only do they relate to one of the current organizations that I work with (Hearts 4 the Homeless), but they also are known to be related clinically. Both data sets have prevalence mortality counts of hypertension and heart disease by year and state. In addition, they also have mortality counts per 100000 people. This is especially interesting to me because such data can be used to analyze whether more population dense states have differences in heart disease or hypertension mortality when compared to less population dense states. In addition, this analysis can be compared across years to see if there is an overall change in mortality rates for both of these diseases/conditions throughout the years. Statistically, I love working with a combination of categorical and numerical variables and a joined dataset of a public health statistic that holds a special place in my heart makes this project more meaningful!*
+
+
+#### Tidying: Reshaping
+
+If your datasets are tidy already, demonstrate that you can reshape data with pivot wider/longer here (e.g., untidy and then retidy). Alternatively, it may be easier to wait until the wrangling section so you can reshape your summary statistics. Note here if you are going to do this.
+
+```{R}
+#My datasets are already tidy. Here is a demonstration of reshaping using pivot_wider and pivot_longer. Please note that I also demonstrate this in the wrangling section.
+Heart_disease_mortality_by_state <- Heart_disease_mortality_by_state %>% pivot_wider(names_from = STATE, values_from = RATE)
+Hypertension_mortality_by_state <- Hypertension_mortality_by_state %>% pivot_wider(names_from = STATE, values_from = RATE)
+
+Heart_disease_mortality_by_state <- Heart_disease_mortality_by_state %>% pivot_longer(4:54, names_to = "STATE", values_to = "Heart_Disease_Mortality_per_100000_People", values_drop_na = TRUE)
+Hypertension_mortality_by_state <- Hypertension_mortality_by_state %>% pivot_longer(4:54, names_to = "STATE", values_to = "Hypertension_Mortality_per_100000_People", values_drop_na = TRUE)
+```
+
+
+```{R}
+#Cleaning up/removing unnecessary columns
+Heart_disease_mortality_by_state <- Heart_disease_mortality_by_state %>% rename(Heart_Disease_Deaths = "DEATHS") %>% select(.,-URL)
+Hypertension_mortality_by_state <- Hypertension_mortality_by_state %>% rename(Hypertension_Deaths = "DEATHS") %>% select(.,-URL)
+
+```
+
+    
+#### Joining/Merging
+
+```{R}
+#Inner Join by STATE and YEAR. The variable that I'm particularly interested in is STATE, but YEAR is also possible.
+Mortality_joined <- inner_join(Heart_disease_mortality_by_state, Hypertension_mortality_by_state, by = c("STATE" = "STATE", "YEAR" = "YEAR"))
+
+#Reorganize columns
+Mortality_joined <- Mortality_joined[c("YEAR", "STATE", "Heart_Disease_Deaths", "Heart_Disease_Mortality_per_100000_People", "Hypertension_Deaths", "Hypertension_Mortality_per_100000_People")]
+```
+
+*I decided to choose an inner join because I wanted a joined dataset that included all of the ID intersections in the final join. While I was lucky that there weren't any NA's, they would have been removed due to this inner join which would make my end join much cleaner. This allows for more accurate plots.*
+
+```{R}
+#Number of unique ID's (STATE,YEAR) in each dataset
+Heart_disease_mortality_by_state %>% n_distinct()
+Hypertension_mortality_by_state %>% n_distinct()
+```
+*There are also 350 unique ID's (STATE, YEAR) in each dataset. This means that out of all the observations (350), none of the ID's were repeated and all of them were unique.*
+
+```{R}
+#Total number of observations in each dataset
+Heart_disease_mortality_by_state %>% nrow()
+Hypertension_mortality_by_state %>% nrow()
+```
+*There are 350 observations in both the Heart_disease_mortality_by_state and the Hypertension_mortality_by_state dataset.*
+
+```{R}
+#ID's (STATE,YEAR) that appear in one dataset but not the other
+anti_join(Heart_disease_mortality_by_state, Hypertension_mortality_by_state) %>% n_distinct()
+anti_join(Hypertension_mortality_by_state, Heart_disease_mortality_by_state) %>% n_distinct()
+
+
+nrow(Mortality_joined)
+
+350-350
+```
+
+*There were also 0 ID's that appeared in one data set and not the other. For both ways, this means that I was able to use an anti_join (Basically the opposite of inner join) which revealed such ID's. The data sets also have all 350 ID's (STATE, YEAR) in common. Compared to the size of the original datasets (350 each), the inner join allowed all the matched ID's to be combined so that the joined dataset ended up with 350 as well. In the joined dataset, there were 0 values that were dropped, which means that the joined dataset is representative of the data, and avoids any problems associated with dropped NA's. However, it is important to consider the problem of having such a small snapshot of data with no NA's being less representative of multiple decades than a large dataset spanning multiple decades with a few NA's.*
+
+####  Wrangling
+
+```{R - Core dplyr functions} 
+#Core dplyr functions
+Mortality_joined %>% filter(STATE == "AL")
+
+Mortality_joined %>% select(`Heart_Disease_Deaths`)
+
+Mortality_joined %>% arrange(desc('Heart_Disease_Mortality_per_100000_People'))
+
+Mortality_joined %>% group_by(STATE)
+
+Mortality_joined %>% mutate(Heart_Disease_Mortality_per_10000_People = (Heart_Disease_Mortality_per_100000_People)/10)
+
+Mortality_joined %>% mutate(Hypertension_Mortality_per_10000_People = (Hypertension_Mortality_per_100000_People)/10)
+
+Mortality_joined %>% summarize(mean(Heart_Disease_Deaths > 5000))
+
+Mortality_joined %>% filter(str_detect(STATE,"^A"))
+
+```
+*For the procedure for my core dplyr functions, I first piped my
+
+```{R - dplyr Summary Statistics Overall}
+#5 Unique Dplyr Summary Statistics Functions
+Mortality_joined %>% summarize_at(c("Heart_Disease_Deaths", "Heart_Disease_Mortality_per_100000_People", "Hypertension_Deaths", "Hypertension_Mortality_per_100000_People"), mean)
+  
+Mortality_joined %>% summarize_at(c("Heart_Disease_Deaths", "Heart_Disease_Mortality_per_100000_People", "Hypertension_Deaths", "Hypertension_Mortality_per_100000_People"), sd)
+
+Mortality_joined %>% summarize_at(c("Heart_Disease_Deaths", "Heart_Disease_Mortality_per_100000_People", "Hypertension_Deaths", "Hypertension_Mortality_per_100000_People"), min)
+
+Mortality_joined %>% summarize_at(c("Heart_Disease_Deaths", "Heart_Disease_Mortality_per_100000_People", "Hypertension_Deaths", "Hypertension_Mortality_per_100000_People"), max)
+
+Mortality_joined %>% summarize_at(c("Heart_Disease_Deaths", "Heart_Disease_Mortality_per_100000_People", "Hypertension_Deaths", "Hypertension_Mortality_per_100000_People"), median)
+```
+*For the procedure of these summary statistics, I first piped my joined dataset into the summarize_at function which applies a given function to the selected columns in quotes. For the functions, I used, I decided to do a mean, standard deviation, minimum, maximum, and median, for each of the columns. These are the 5 traditional summary statistics. In my opinion, the most interesting result out of these 5 summary statistics is the mean for Heart Disease Death Counts which is 12823. Even though many of the states have much lower Heart Disease Death Counts than 12823, there are a few states, notably California and Texas that pull the average up!*
+
+```{R - dplyr Summary Statistics Overall}
+#2 functions using Group by categorical variable
+Mortality_joined %>% group_by(STATE, YEAR) %>% summarize_at(c("Heart_Disease_Deaths", "Heart_Disease_Mortality_per_100000_People", "Hypertension_Deaths", "Hypertension_Mortality_per_100000_People"), mean)
+  
+Mortality_joined %>% group_by(YEAR) %>% summarize_at(c("Heart_Disease_Deaths", "Heart_Disease_Mortality_per_100000_People", "Hypertension_Deaths", "Hypertension_Mortality_per_100000_People"), sd)
+
+#define my own function
+Per_10000 <- function(x) {
+  value <- x/10
+  return(value)
+}
+
+Mortality_joined %>% group_by(STATE) %>% summarize(Heart_Disease_Mortality_per_10000_People = Per_10000(Heart_Disease_Mortality_per_100000_People))
+
+#n() inside group_by
+Mortality_joined %>% group_by(STATE) %>% summarize(Heart_Disease_and_Hypertension_Count = n())
+Mortality_joined %>% group_by(YEAR) %>% summarize(Heart_Disease_and_Hypertension_Count = n())
+
+#table using kable
+
+Mortality_joined %>% group_by(YEAR) %>% summarize_at(c("Heart_Disease_Deaths", "Heart_Disease_Mortality_per_100000_People", "Hypertension_Deaths", "Hypertension_Mortality_per_100000_People"), sd) %>% kbl() %>% kable_material_dark()
+
+#table using pivot_wider that can be used to make a table using kable package
+Mortality_joined %>% pivot_wider(names_from = YEAR, values_from = Heart_Disease_Deaths)
+```
+
+
+Your discussion of wrangling section here. Feel encouraged to break up into more than once code chunk and discuss each in turn.
+
+
+
+
+#### Visualizing
+
+```{R fig.height = 5, fig.width = 15}
+library(ggplot2)
+ggplot(Mortality_joined, aes(x = STATE, y = Heart_Disease_Deaths)) + 
+  geom_bar(aes(x = STATE, y = Heart_Disease_Deaths), stat = "identity") + 
+  #scale_color_manual(values = c("2019" = "purple", "2018" = "blue", "2017" = "deepskyblue1", "2016" = "green", "2015" =    "yellow", "2014" = "orange", "2005" = "red" )) +
+  #geom_smooth(aes(group = YEAR), method = "loess", se=F) +
+  scale_y_continuous(breaks = seq(0,600000, by = 100000)) + 
+  ggtitle("Heart Disease Death Counts by State and Year") + 
+  ylab("Heart Disease Death Counts") + 
+  xlab("State") + 
+  labs(color="Year") +
+  theme_light()
+
+#color = as.factor(YEAR)
+
+
+```
+
+Your discussion of plot 1
+
+```{R}
+ggplot(ChickWeight, aes(x = Diet)) + geom_bar(aes(y=weight), stat="summary", fun=mean)
+```
+
+Your discussion of plot 2
+
+```{R}
+# your plot 3
+```
+
+Your discussion of plot 3
+
+#### Concluding Remarks
+
+If any!
+
+
+
+
