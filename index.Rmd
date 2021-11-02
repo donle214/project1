@@ -38,7 +38,7 @@ Heart_disease_mortality_by_state <- read_csv("Heart_disease_mortality_by_state.c
 
 Paragraph or two introducing your datasets and variables, why they are interesting to you, etc.
 
-*I chose two datasets that hold a special place in my heart. Not only do they relate to one of the current organizations that I work with (Hearts 4 the Homeless), but they also are known to be related clinically. Both data sets have prevalence mortality counts of hypertension and heart disease by year and state. In addition, they also have mortality counts per 100000 people. This is especially interesting to me because such data can be used to analyze whether more population dense states have differences in heart disease or hypertension mortality when compared to less population dense states. In addition, this analysis can be compared across years to see if there is an overall change in mortality rates for both of these diseases/conditions throughout the years. Statistically, I love working with a combination of categorical and numerical variables and a joined dataset of a public health statistic that holds a special place in my heart makes this project more meaningful!*
+*I chose two datasets that hold a special place in my heart. Not only do they relate to one of the current organizations that I work with (Hearts 4 the Homeless), but they also are known to be related clinically. One came from the Centers for Disease Control and the other came from the Kaiser Health Policy Foundation for Health Policy (Hospital System). Both data sets have prevalence mortality counts of hypertension and heart disease by year and state respectively. In addition, they also have mortality counts per 100000 people. This is especially interesting to me because such data can be used to analyze whether more population dense states have differences in heart disease or hypertension mortality when compared to less population dense states. I expect that states with a larger population will have larger death counts, but not necessarily a larger proportion of mortalities. In addition, this analysis can be compared across years to see if there is an overall change in mortality rates for both of these diseases/conditions throughout the years. Statistically, I love working with a combination of categorical and numerical variables and a joined dataset of a public health statistic that holds a special place in my heart makes this project more meaningful!*
 
 #### Tidying: Reshaping
 
@@ -52,7 +52,7 @@ Heart_disease_mortality_by_state <- Heart_disease_mortality_by_state %>% pivot_l
 Hypertension_mortality_by_state <- Hypertension_mortality_by_state %>% pivot_longer(4:54, names_to = "STATE", values_to = "Hypertension_Mortality_per_100000_People", values_drop_na = TRUE)
 ```
 
-*My datasets are already tidy. Here is a demonstration of reshaping using pivot_wider and pivot_longer. Please note that I also demonstrate this in the wrangling section.*
+*My datasets are already tidy. Here is a demonstration of reshaping using pivot_wider and pivot_longer where I pipe the respective datasets into each of the functions, assigning new columns to be states and the values from rate. Conversely, I pivoted them back to long by using the pivot_longer function for columns 4:54 and reversing the names and values while dropping any NA's that were created previously. Please note that I also demonstrate this in the wrangling section.*
 
 ```{R}
 #Cleaning up/removing unnecessary columns
@@ -80,7 +80,7 @@ Mortality_joined <- Mortality_joined[c("YEAR", "STATE", "Heart_Disease_Deaths", 
 Heart_disease_mortality_by_state %>% n_distinct()
 Hypertension_mortality_by_state %>% n_distinct()
 ```
-*There are also 350 unique ID's (STATE, YEAR) in each dataset. This means that out of all the observations (350), none of the ID's were repeated and all of them were unique.*
+*There are 350 unique ID's (STATE, YEAR) in each dataset. This means that out of all the observations (350) for each dataset, none of the ID's were repeated and all of them were unique.*
 
 ```{R}
 #Total number of observations in each dataset
@@ -94,13 +94,13 @@ Hypertension_mortality_by_state %>% nrow()
 anti_join(Heart_disease_mortality_by_state, Hypertension_mortality_by_state) %>% n_distinct()
 anti_join(Hypertension_mortality_by_state, Heart_disease_mortality_by_state) %>% n_distinct()
 
-
+#ID's in common
 nrow(Mortality_joined)
 
 350-350
 ```
 
-*There were also 0 ID's that appeared in one data set and not the other. For both ways, this means that I was able to use an anti_join (Basically the opposite of inner join) which revealed such ID's. The data sets also have all 350 ID's (STATE, YEAR) in common. Compared to the size of the original datasets (350 each), the inner join allowed all the matched ID's to be combined so that the joined dataset ended up with 350 as well. In the joined dataset, there were 0 values that were dropped, which means that the joined dataset is representative of the data, and avoids any problems associated with dropped NA's. However, it is important to consider the problem of having such a small snapshot of data with no NA's being less representative of multiple decades than a large dataset spanning multiple decades with a few NA's.*
+*There were also 0 ID's that appeared in one data set and not the other. For both ways, this means that I was able to use an anti_join (Basically the opposite of inner join) which revealed such ID's. If there were any that appeared in one data set and not the other, this value would not be 0. The data sets also have all 350 ID's (STATE, YEAR) in common using the Mortality_joined dataset. Compared to the size of the original datasets (350 each), the inner join allowed all the matched ID's to be combined so that the joined dataset ended up with 350 as well. In the joined dataset, there were 0 values that were dropped, which means that the joined dataset is representative of the data, and avoids any problems associated with dropped NA's. However, it is important to consider the problem of having such a small snapshot of data with no NA's being less representative of multiple decades than a large dataset spanning multiple decades with a few NA's.*
 
 ####  Wrangling
 
@@ -171,9 +171,9 @@ Mortality_joined %>% pivot_wider(names_from = YEAR, values_from = Heart_Disease_
 
 ```{R fig.height = 5, fig.width = 15}
 library(ggplot2)
-ggplot(Mortality_joined, aes(x = STATE, y = Heart_Disease_Deaths, fill = YEAR)) + 
-  geom_bar(aes(x = STATE, y = Heart_Disease_Deaths, position = "fill"), stat = "identity") + 
-  geom_smooth(aes(group = YEAR), method = "loess", se=F) +
+ggplot(Mortality_joined, aes(x = STATE, y = Heart_Disease_Deaths)) + 
+  geom_bar(aes(x = STATE, y = Heart_Disease_Deaths, fill = YEAR, position = "fill"), stat = "identity") + 
+  geom_count() +
   scale_y_continuous(breaks = seq(0,600000, by = 100000)) + 
   ggtitle("Heart Disease Death Counts by State and Year") + 
   ylab("Heart Disease Death Counts") + 
@@ -181,7 +181,7 @@ ggplot(Mortality_joined, aes(x = STATE, y = Heart_Disease_Deaths, fill = YEAR)) 
   theme_light()
 ```
 
-*The plot above depicts Heart Disease Death Counts by State and Year. By plotting a barplot, I am able to see the heart disease death counts for each state. This reveals that in states like California, Florida, New York, and Texas with very large populations, it makes sense that the bars/bins for Heart disease death counts are much higher than in states with a very small population. Using position = "fill" in geom_bar, I was able to split each bar into their respective years and show how much each year contributes to the total. From this, I was able to see a trend that shows mostly decreasing Heart Disease death counts as the years progress.*
+*The plot above depicts Heart Disease Death Counts by State and Year. By plotting a barplot, I am able to see the heart disease death counts for each state. This reveals that in states like California, Florida, New York, and Texas with very large populations, it makes sense that the bars/bins for Heart disease death counts are much higher than in states with a very small population. Using position = "fill" in geom_bar, I was able to split each bar into their respective years and show how much each year contributes to the total. From this, I was able to see a trend that shows mostly decreasing Heart Disease death counts as the years progress. Lastly, I used geom_count to find that a lot of the Heart Disease Death Counts for states are more different than I previously thought. Only Utah, Vermont, and Connecticut have lots of death counts throughout the years that are very similar.*
 
 ```{R,fig.width = 8, fig.height = 8}
 
